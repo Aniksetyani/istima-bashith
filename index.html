@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الاستماع العربية - استمع وتعلم</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        
+        :root {
+            --primary: #FC6D6D;
+            --secondary: #6C63FF;
+            --accent: #00E0FF;
+            --dark: #1E1E2E;
+            --light: #F8F9FA;
+            --success: #4CAF50;
+            --error: #FF5252;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: linear-gradient(45deg, #1E1E2E 0%, #2E2E4E 100%);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(30, 30, 46, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(0, 224, 255, 0.5);
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .level {
+            background-color: var(--secondary);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+        
+        .audio-card {
+            background: linear-gradient(145deg, #2a2a42, #232338);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .audio-card::before {
+            content: "";
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.1;
+            top: -100px;
+            right: -100px;
+        }
+        
+        .audio-card::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: var(--secondary);
+            border-radius: 50%;
+            opacity: 0.1;
+            bottom: -70px;
+            left: -70px;
+        }
+        
+        .play-btn {
+            background-color: var(--primary);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            margin: 20px auto;
+            box-shadow: 0 4px 20px rgba(252, 109, 109, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(252, 109, 109, 0.7);
+        }
+        
+        .play-btn svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            background: linear-gradient(145deg, #2a2a42, #232338);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .option:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        
+        .option.correct {
+            background: linear-gradient(145deg, #4CAF50, #3d8b40);
+            border-color: var(--success);
+        }
+        
+        .option.incorrect {
+            background: linear-gradient(145deg, #FF5252, #d32f2f);
+            border-color: var(--error);
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .feedback.success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+            opacity: 1;
+        }
+        
+        .feedback.error {
+            background-color: rgba(255, 82, 82, 0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+            opacity: 1;
+        }
+        
+        .next-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+            margin-left: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            background-color: #5a52e0;
+            transform: translateX(-5px);
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+        
+        .game-over {
+            text-align: center;
+            display: none;
+        }
+        
+        .result-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        .result-message {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .final-score {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .restart-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            background-color: #e55c5c;
+            transform: scale(1.05);
+        }
+        
+        .audio-wave {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            height: 60px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .wave-bar {
+            background-color: var(--accent);
+            width: 4px;
+            height: 20%;
+            border-radius: 2px;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% {
+                height: 20%;
+            }
+            50% {
+                height: 70%;
+            }
+        }
+        
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+        .wave-bar:nth-child(8) { animation-delay: 0.7s; }
+        
+        .wave-animation {
+            display: none;
+        }
+        
+        .wave-animation.active {
+            display: flex;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .play-btn {
+                width: 60px;
+                height: 60px;
+            }
+        }
+        
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.2;
+            animation: float 15s linear infinite;
+        }
+        
+        .shape:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            border-radius: 33% 67% 70% 30% / 30% 30% 70% 70%;
+            background-color: var(--primary);
+            top: 20%;
+            left: 10%;
+            animation-duration: 18s;
+        }
+        
+        .shape:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+            background-color: var(--secondary);
+            bottom: 30%;
+            right: 10%;
+            animation-duration: 16s;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(3) {
+            width: 120px;
+            height: 120px;
+            border-radius: 46% 54% 39% 61% / 44% 57% 43% 56%;
+            background-color: var(--accent);
+            bottom: 10%;
+            left: 20%;
+            animation-duration: 20s;
+            animation-delay: 1s;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, -50px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 30px) rotate(240deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+    
+    <div class="container">
+        <h1>🎧 لعبة الاستماع العربية</h1>
+        
+        <div class="game-container">
+            <div class="game-header">
+                <div class="score">
+                    النقاط: <span id="score-value">0</span>
+                </div>
+                <div class="level">
+                    المستوى: <span id="level-value">1</span>/5
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="audio-card">
+                <h2>استمع إلى الجملة واختر الإجابة الصحيحة</h2>
+                
+                <button class="play-btn" id="play-btn">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+                
+                <div class="audio-wave wave-animation" id="wave-animation">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+                
+                <div class="options-container" id="options-container">
+                    <!-- Options will be added here dynamically -->
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <button class="next-btn" id="next-btn">التالي ⟸</button>
+            </div>
+            
+            <div class="game-over" id="game-over">
+                <div class="result-emoji">🎉</div>
+                <div class="result-message">أحسنت! لقد أكملت اللعبة</div>
+                <div class="final-score">نقاطك النهائية: <span id="final-score">0</span> من 5</div>
+                <button class="restart-btn" id="restart-btn">إعادة اللعبة</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data for the game
+        const gameData = [
+            {
+                id: 1,
+                text: "عَلَى الرَّغْمِ مِنْ صُعُوبَةِ تَعَلُّمِ اللُّغَةِ الْعَرَبِيَّةِ، فَإِنَّهَا مُمْتِعَةٌ جِدًّا.",
+                options: [
+                    "عَلَى الرَّغْمِ مِنْ صُعُوبَةِ تَعَلُّمِ اللُّغَةِ الْعَرَبِيَّةِ، فَإِنَّهَا مُمْتِعَةٌ جِدًّا.",
+                    "عَلَى الرَّغْمِ مِنْ سُهُولَةِ تَعَلُّمِ اللُّغَةِ الْعَرَبِيَّةِ، فَإِنَّهَا مُمْتِعَةٌ جِدًّا.",
+                    "عَلَى الرَّغْمِ مِنْ صُعُوبَةِ تَعَلُّمِ اللُّغَةِ الْعَرَبِيَّةِ، فَإِنَّهَا مُمِلَّةٌ جِدًّا.",
+                    "عَلَى الرَّغْمِ مِنْ صُعُوبَةِ تَعَلُّمِ اللُّغَةِ الْإِنْجِلِيزِيَّةِ، فَإِنَّهَا مُمْتِعَةٌ جِدًّا."
+                ],
+                correctOption: 0
+            },
+            {
+                id: 2,
+                text: "كُلَّمَا قَرَأْتُ كِتَابًا جَدِيدًا، اكْتَسَبْتُ مَعْرِفَةً جَدِيدَةً.",
+                options: [
+                    "كُلَّمَا قَرَأْتُ كِتَابًا قَدِيمًا، اكْتَسَبْتُ مَعْرِفَةً جَدِيدَةً.",
+                    "كُلَّمَا قَرَأْتُ كِتَابًا جَدِيدًا، اكْتَسَبْتُ مَعْرِفَةً جَدِيدَةً.",
+                    "كُلَّمَا شَاهَدْتُ فِيلْمًا جَدِيدًا، اكْتَسَبْتُ مَعْرِفَةً جَدِيدَةً.",
+                    "كُلَّمَا قَرَأْتُ كِتَابًا جَدِيدًا، فَقَدْتُ بَعْضَ الْمَعْرِفَةِ."
+                ],
+                correctOption: 1
+            },
+            {
+                id: 3,
+                text: "يُقَالُ إِنَّ السَّفَرَ يُوَسِّعُ آفَاقَ الإِنْسَانِ وَيُنَمِّي مَعَارِفَهُ.",
+                options: [
+                    "يُقَالُ إِنَّ السَّفَرَ يُضَيِّقُ آفَاقَ الإِنْسَانِ وَيُنَمِّي مَعَارِفَهُ.",
+                    "يُقَالُ إِنَّ الْقِرَاءَةَ تُوَسِّعُ آفَاقَ الإِنْسَانِ وَتُنَمِّي مَعَارِفَهُ.",
+                    "يُقَالُ إِنَّ السَّفَرَ يُوَسِّعُ آفَاقَ الإِنْسَانِ وَيُنَمِّي مَعَارِفَهُ.",
+                    "يُقَالُ إِنَّ السَّفَرَ يُوَسِّعُ آفَاقَ الإِنْسَانِ وَلَكِنَّهُ مُكْلِفٌ جِدًّا."
+                ],
+                correctOption: 2
+            },
+            {
+                id: 4,
+                text: "يَنْبَغِي عَلَيْنَا أَنْ نَحْتَرِمَ آرَاءَ الْآخَرِينَ حَتَّى لَوْ كُنَّا لَا نَتَّفِقُ مَعَهُمْ.",
+                options: [
+                    "يَنْبَغِي عَلَيْنَا أَنْ نَحْتَرِمَ آرَاءَ الْآخَرِينَ فَقَط إِذَا كُنَّا نَتَّفِقُ مَعَهُمْ.",
+                    "يَنْبَغِي عَلَيْنَا أَنْ نَتَجَاهَلَ آرَاءَ الْآخَرِينَ إِذَا كُنَّا لَا نَتَّفِقُ مَعَهُمْ.",
+                    "يَنْبَغِي عَلَيْنَا أَنْ نَحْتَرِمَ آرَاءَ الْآخَرِينَ حَتَّى لَوْ كُنَّا لَا نَتَّفِقُ مَعَهُمْ.",
+                    "يَنْبَغِي عَلَيْنَا أَنْ نُغَيِّرَ آرَاءَنَا لِتَتَّفِقَ مَعَ آرَاءِ الْآخَرِينَ."
+                ],
+                correctOption: 2
+            },
+            {
+                id: 5,
+                text: "إِذَا كُنْتَ تُرِيدُ أَنْ تَنْجَحَ فِي حَيَاتِكَ، عَلَيْكَ أَنْ تَعْمَلَ بِجِدٍّ وَاجْتِهَادٍ.",
+                options: [
+                    "إِذَا كُنْتَ تُرِيدُ أَنْ تَنْجَحَ فِي حَيَاتِكَ، عَلَيْكَ أَنْ تَعْمَلَ بِجِدٍّ وَاجْتِهَادٍ.",
+                    "إِذَا كُنْتَ تُرِيدُ أَنْ تَنْجَحَ فِي حَيَاتِكَ، عَلَيْكَ أَنْ تَتَوَكَّلَ عَلَى الحَظِّ.",
+                    "إِذَا كُنْتَ تُرِيدُ أَنْ تَنْجَحَ فِي دِرَاسَتِكَ، عَلَيْكَ أَنْ تَعْمَلَ بِجِدٍّ وَاجْتِهَادٍ.",
+                    "إِذَا كُنْتَ تُرِيدُ أَنْ تَنْجَحَ فِي حَيَاتِكَ، عَلَيْكَ أَنْ تَعْتَمِدَ عَلَى الْآخَرِينَ."
+                ],
+                correctOption: 0
+            }
+        ];
+        
+        // Speech synthesis for Arabic
+        function speakText(text) {
+            // Create speech synthesis utterance
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar';
+            utterance.rate = 0.9; // Slightly slower rate for better comprehension
+            
+            // Speak the text
+            window.speechSynthesis.speak(utterance);
+            
+            // Show audio wave animation
+            document.getElementById('wave-animation').classList.add('active');
+            
+            // Hide audio wave animation when speech ends
+            utterance.onend = function() {
+                document.getElementById('wave-animation').classList.remove('active');
+            };
+        }
+        
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let hasAnswered = false;
+        
+        // DOM Elements
+        const playBtn = document.getElementById('play-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackDiv = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreValue = document.getElementById('score-value');
+        const levelValue = document.getElementById('level-value');
+        const progressBar = document.getElementById('progress-bar');
+        const gameOverDiv = document.getElementById('game-over');
+        const finalScore = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const audioWave = document.getElementById('wave-animation');
+        
+        // Initialize game
+        function initGame() {
+            currentQuestion = 0;
+            score = 0;
+            hasAnswered = false;
+            
+            updateQuestion();
+            updateUI();
+            
+            // Hide game over screen
+            gameOverDiv.style.display = 'none';
+            document.querySelector('.audio-card').style.display = 'block';
+        }
+        
+        // Update the question
+        function updateQuestion() {
+            // Clear options
+            optionsContainer.innerHTML = '';
+            
+            // Get current question data
+            const questionData = gameData[currentQuestion];
+            
+            // Create options
+            questionData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.textContent = option;
+                optionDiv.dataset.index = index;
+                
+                optionDiv.addEventListener('click', () => {
+                    if (!hasAnswered) {
+                        checkAnswer(index);
+                    }
+                });
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            // Reset UI elements
+            feedbackDiv.className = 'feedback';
+            feedbackDiv.textContent = '';
+            nextBtn.style.display = 'none';
+            hasAnswered = false;
+        }
+        
+        // Check the selected answer
+        function checkAnswer(selectedIndex) {
+            hasAnswered = true;
+            const questionData = gameData[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            // Mark the correct and incorrect options
+            options.forEach((option, index) => {
+                if (index === questionData.correctOption) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex && selectedIndex !== questionData.correctOption) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Check if the answer is correct
+            if (selectedIndex === questionData.correctOption) {
+                feedbackDiv.textContent = '👏 إجابة صحيحة!';
+                feedbackDiv.className = 'feedback success';
+                score++;
+                scoreValue.textContent = score;
+            } else {
+                feedbackDiv.textContent = '❌ إجابة خاطئة!';
+                feedbackDiv.className = 'feedback error';
+            }
+            
+            // Show next button
+            nextBtn.style.display = 'block';
+        }
+        
+        // Move to the next question
+        function nextQuestion() {
+            currentQuestion++;
+            
+            // Check if the game is over
+            if (currentQuestion >= gameData.length) {
+                endGame();
+                return;
+            }
+            
+            updateQuestion();
+            updateUI();
+        }
+        
+        // End the game
+        function endGame() {
+            document.querySelector('.audio-card').style.display = 'none';
+            gameOverDiv.style.display = 'block';
+            finalScore.textContent = score;
+            
+            // Change emoji and message based on score
+            const resultEmoji = document.querySelector('.result-emoji');
+            const resultMessage = document.querySelector('.result-message');
+            
+            if (score === 5) {
+                resultEmoji.textContent = '🏆';
+                resultMessage.textContent = 'رائع! لقد حصلت على العلامة الكاملة!';
+            } else if (score >= 3) {
+                resultEmoji.textContent = '🎉';
+                resultMessage.textContent = 'أحسنت! نتيجة جيدة!';
+            } else {
+                resultEmoji.textContent = '😊';
+                resultMessage.textContent = 'حاول مرة أخرى للحصول على نتيجة أفضل!';
+            }
+        }
+        
+        // Update UI elements
+        function updateUI() {
+            levelValue.textContent = currentQuestion + 1;
+            progressBar.style.width = `${((currentQuestion + 1) / gameData.length) * 100}%`;
+        }
+        
+        // Event listeners
+        playBtn.addEventListener('click', () => {
+            const questionData = gameData[currentQuestion];
+            speakText(questionData.text);
+        });
+        
+        nextBtn.addEventListener('click', nextQuestion);
+        
+        restartBtn.addEventListener('click', initGame);
+        
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
